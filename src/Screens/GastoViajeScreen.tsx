@@ -21,6 +21,7 @@ import { CombustibleInterface } from "../Interfaces/CombustiblesInterface";
 import TextInputContainer from "../Components/TextInputContainer";
 import { ImpuestosInterface } from "../Interfaces/ImpuestosInterface";
 import { parse } from "react-native-svg";
+import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 
 const GastoViajeScreen = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParams>>()
@@ -53,7 +54,9 @@ const GastoViajeScreen = () => {
     const [Exento, setExento] = useState<string>('')
     const [total, setTotal] = useState<string>('')
     const [impuesto, setimpuesto] = useState<string>('')
-
+    const [date, setDate] = useState<string>('')
+    const [openDate, setOpenDate] = useState<boolean>(false)
+    const [showDate, setShowDate] = useState<Date>(new Date())
 
     const onScreeenLoad = async () => {
         try {
@@ -196,6 +199,23 @@ const GastoViajeScreen = () => {
         if (GiraState.Empresa == 'IMHN') {
             let calcTotal: number = parseFloat(Gravado.length > 0 ? Gravado : '0') * (1 + parseFloat(impuesto.length > 0 ? impuesto : '0')) + parseFloat(Exento.length > 0 ? Exento : '0');
             setTotal(calcTotal.toFixed(2).toString())
+        }
+    }
+
+    const onChanceDate = (event: DateTimePickerEvent, selectedDate?: Date) => {
+        setOpenDate(false)
+        let fecha: any = selectedDate
+        if (event.type == 'set') {
+            if (fecha <= new Date()) {
+                let selected: string = fecha.getDate() + '/' + (fecha.getMonth() + 1) + '/' + fecha.getFullYear()
+                setDate(selected)
+                setShowDate(fecha)
+            }else{
+                setMensajeAlerta('Debe seleccionar una fecha correcta')
+                setShowMensajeAlerta(true)
+                setTipoMensaje(false)
+            }
+
         }
     }
 
@@ -365,12 +385,30 @@ const GastoViajeScreen = () => {
                                 editable={true}
                             />
                         }
-
+                        <TouchableOpacity onPress={() => setOpenDate(true)}>
+                            <View style={styles.textInputDateContainer}>
+                                <Text style={styles.text}>Fecha Factura</Text>
+                                <View style={styles.inputIconContainer}>
+                                    <TextInput style={styles.input} placeholder="01/01/2000" editable={false} value={date} />
+                                    <FontAwesome5Icon name="calendar-alt" size={IconSelect} color={'#1A4D2E'} />
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                        {
+                            openDate &&
+                            <RNDateTimePicker
+                                testID="dateTimePicker"
+                                display="default"
+                                mode="date"
+                                value={showDate }
+                                onChange={onChanceDate}
+                                style={{ width: '100%' }}
+                            />
+                        }
                     </View>
                 </SafeAreaView>
             </ScrollView>
             <MyAlert visible={showMensajeAlerta} tipoMensaje={tipoMensaje} mensajeAlerta={mensajeAlerta} onPress={() => setShowMensajeAlerta(false)} />
-
         </View>
     )
 }
