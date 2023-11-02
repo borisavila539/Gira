@@ -166,7 +166,7 @@ const HistorialScreen = () => {
         }
         return (
             <View style={{ borderWidth: 1.5, width: "98%", flexDirection: 'row', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 5, borderColor: EstadoColor(item.Estado), backgroundColor: '#fff', marginHorizontal: '1%', marginVertical: 2 }}>
-                <TouchableOpacity style={{ width: '100%', flexDirection: 'row' }} onPress={() => console.log('His')}>
+                <TouchableOpacity style={{ width: '100%', flexDirection: 'row' }} onPress={() => navigation.navigate('HistorialDetalleScreen',{id:item.IdGastoViajeDetalle})}>
                     <View style={{ width: '20%', alignItems: 'center', justifyContent: 'center' }}>
                         <FontAwesome5Icon
                             name='file-invoice-dollar'

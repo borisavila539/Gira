@@ -4,12 +4,14 @@ import BottomTabNavigation from "../Screens/BottomTabNav";
 import { useContext, useState } from "react";
 import { GiraContext } from "../Context/GiraContext";
 import { Animated } from "react-native";
+import HistorialDetalleScreen from "../Screens/HistorialDetalleScreen";
 
 
 
 export type RootStackParams = {
     LoginScreen: undefined,
-    TabNavigation: undefined
+    TabNavigation: undefined,
+    HistorialDetalleScreen: { id: number }
 }
 const Stack = createStackNavigator<RootStackParams>();
 
@@ -27,6 +29,7 @@ export const Navigation = () => {
                     :
                     <Stack.Screen name="TabNavigation" options={{ title: 'TabNavigation' }} component={BottomTabNavigation} />
             }
+            <Stack.Screen name="HistorialDetalleScreen" options={{ title: 'HistorialDetalleScreen' }} component={HistorialDetalleScreen} />
 
         </Stack.Navigator>
     )
