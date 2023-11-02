@@ -1,7 +1,7 @@
 import { StackScreenProps } from "@react-navigation/stack";
 import { RootStackParams } from "../Navigation/Navigation";
 import { FC, useContext, useReducer, useState } from "react";
-import { Image, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Image, Pressable, SafeAreaView, StyleSheet, TextInput, View } from "react-native";
 import { placeholderText } from "../Constants/Colors";
 import Buttons from "../Components/Buttons";
 import { LoginInterface } from "../Interfaces/LoginInterface";

@@ -4,6 +4,7 @@ import { APIURLAVENTAS, APIURLPROXY } from '../Constants/Api'
 export const ReqRequestApiAventas = axios.create({
     baseURL: APIURLAVENTAS,
     headers:{
+        'accept': 'application/json',
         'Content-Type':'application/json'
     }
 })

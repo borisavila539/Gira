@@ -1,9 +1,9 @@
-import { ActivityIndicator, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, PermissionStatus, Platform, SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import HeaderLogout from "../Components/HeaderLogout";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParams } from "../Navigation/Navigation";
-import { ObjectHeigth, TextoPantallas } from "../Constants/Texto";
+import { ObjectHeigth } from "../Constants/Texto";
 import DropDownList from "../Components/DropDownList";
 import { useContext, useEffect, useState } from "react";
 import { ReqRequestApiAventas, ReqRequestApiProxy } from "../Api/API";
@@ -15,13 +15,15 @@ import { styles } from "../Styles/StylesGastoViaje";
 import { IconSelect } from "../Constants/BottomTab";
 import { ProveedoresInterface } from "../Interfaces/Proveedores";
 import MyAlert from "../Components/MyAlert";
-import { APIURLPROXY } from "../Constants/Api";
-import axios from "axios";
 import { CombustibleInterface } from "../Interfaces/CombustiblesInterface";
 import TextInputContainer from "../Components/TextInputContainer";
 import { ImpuestosInterface } from "../Interfaces/ImpuestosInterface";
-import { parse } from "react-native-svg";
 import RNDateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import ModalCameraUpload from "../Components/Camera";
+import { CameraOptions, ImagePickerResponse, launchCamera, launchImageLibrary } from "react-native-image-picker";
+import Buttons from "../Components/Buttons";
+import { EnviarGastointerface } from "../Interfaces/EnviarGasto";
+import moment from "moment";
 
 const GastoViajeScreen = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParams>>()
@@ -38,7 +40,7 @@ const GastoViajeScreen = () => {
     const [proveedoresArray, setProveedoresArray] = useState<string[]>([])
     const [selectAlimentacion, setSelectAlimentacion] = useState<boolean>(false)
     const dataAlimentos = [{ label: 'Desayuno' }, { label: 'Almuerzo' }, { label: 'Cena' }]
-    const [TipoAlimento, setTipoAlimento] = useState<string>('')
+    const [TipoAlimento, setTipoAlimento] = useState<{ label: string }>({ label: '' })
     const [documentoFiscal, setDocumentoFiscal] = useState<string>('')
     const [BuscandoProveedor, setBuscandoproveedor] = useState<boolean>(false)
     const [showMensajeAlerta, setShowMensajeAlerta] = useState<boolean>(false);
@@ -57,6 +59,10 @@ const GastoViajeScreen = () => {
     const [date, setDate] = useState<string>('')
     const [openDate, setOpenDate] = useState<boolean>(false)
     const [showDate, setShowDate] = useState<Date>(new Date())
+    const [modalVisible, setModalVisible] = useState<boolean>(false)
+    const [imagen, setImagen] = useState<string>('')
+    const [modalCameraUpload, setmodalCameraUpload] = useState<boolean>(false)
+    const [enviando, setEnviando] = useState<boolean>(false)
 
     const onScreeenLoad = async () => {
         try {
@@ -125,6 +131,7 @@ const GastoViajeScreen = () => {
         setDocumentoFiscal('')
         setFactura('')
         setProveedores([])
+        setProveedoresArray([])
         setCombustibleID(0)
     }
 
@@ -137,8 +144,8 @@ const GastoViajeScreen = () => {
                 .then(x => {
                     if (x.data.length === 0) {
                         setProveedores([])
-                        setMensajeAlerta('No se encontraron Proveedores')
-                        setTipoMensaje(false)
+                        alertas('No se encontraron Proveedores', true, false)
+
                     } else {
                         setProveedores(x.data)
                         let array: string[] = []
@@ -146,8 +153,7 @@ const GastoViajeScreen = () => {
                             array.push(element.Identificacion + ' ' + element.Nombre)
                         })
                         setProveedoresArray(array)
-                        setMensajeAlerta('Lista Proveedores llena')
-                        setTipoMensaje(true)
+                        alertas('Lista Proveedores llena', true, true)
                     }
                 })
             setShowMensajeAlerta(true)
@@ -166,7 +172,7 @@ const GastoViajeScreen = () => {
     const onSelectCombustible = (selectedItem: string, index: number) => {
         let combustibleTMP: any;
         combustibleTMP = (combustibles?.find(x => x.Nombre === selectedItem))?.Id;
-        setCombustibleID(combustibleID)
+        setCombustibleID(combustibleTMP)
     }
 
     const onChangeFactura = (value: string) => {
@@ -203,6 +209,7 @@ const GastoViajeScreen = () => {
     }
 
     const onChanceDate = (event: DateTimePickerEvent, selectedDate?: Date) => {
+        console.log(event.nativeEvent)
         setOpenDate(false)
         let fecha: any = selectedDate
         if (event.type == 'set') {
@@ -210,13 +217,137 @@ const GastoViajeScreen = () => {
                 let selected: string = fecha.getDate() + '/' + (fecha.getMonth() + 1) + '/' + fecha.getFullYear()
                 setDate(selected)
                 setShowDate(fecha)
-            }else{
-                setMensajeAlerta('Debe seleccionar una fecha correcta')
-                setShowMensajeAlerta(true)
-                setTipoMensaje(false)
+            } else {
+                alertas('Debe seleccionar una fecha correcta', true, false)
+            }
+        }
+    }
+    const optionsCamera: CameraOptions = {
+        mediaType: "photo",
+        quality: 0.2,
+        includeBase64: true
+    }
+    const pickImage = async () => {
+        launchCamera(optionsCamera, saveImage);
+    }
+    const upLoadImage = () => {
+        launchImageLibrary(optionsCamera, saveImage)
+    }
+    const saveImage = (resp: ImagePickerResponse) => {
+        if (resp.didCancel) return;
+        if (!resp.assets) return;
+        resp.assets.forEach(element => {
+            let image: any = element.base64
+            setImagen(image);
+            setmodalCameraUpload(false)
+        })
+    }
+
+    const enviar = async () => {
+        setEnviando(true)
+
+
+        if (idCategoria === 0) {
+            alertas('Debe Seleccionar una categoria', true, false)
+        } else if (proveedor === '') {
+            alertas('Debe Seleccionar un Proveedor', true, false)
+        } else if (combustibleID === 0 && categoriaNombre === 'Combustible' && GiraState.Empresa === 'IMGT') {
+            alertas('Debe Seleccionar un Combustible', true, false)
+        } else if (GiraState.Empresa === 'IMGT' && serie == '') {
+            alertas('El campo No. Serie es obligatorio', true, false)
+        } else if (((categoriaGasto!.find(x => x.idCategoriaTipoGastoViaje === idCategoria))!.FacturaObligatoria && GiraState.Empresa === 'IMHN' && (factura == '' || factura.length != 19)) || ((categoriaGasto!.find(x => x.idCategoriaTipoGastoViaje === idCategoria))!.FacturaObligatoria && GiraState.Empresa == 'IMGT' && factura == '')) {
+            alertas('El campo Factura es obligatorio', true, false)
+        } else if ((categoriaGasto!.find(x => x.idCategoriaTipoGastoViaje === idCategoria))!.Descripcion && Descripcion === '') {
+            alertas('El campo Descripcion es obligatorio', true, false)
+        } else if (GiraState.Empresa === 'IMHN' && Exento === '' && Gravado === '') {
+            alertas('El campo Gravado o Exento es obligatorio', true, false)
+        } else if (GiraState.Empresa === 'IMGT' && total == '') {
+            alertas('El campo Total es obligatorio', true, false)
+        } else if (date === '') {
+            alertas('El campo Fecha es obligatorio', true, false)
+        } else if ((categoriaGasto!.find(x => x.idCategoriaTipoGastoViaje === idCategoria))!.imagen && imagen === '') {
+            alertas('La imagen es obligatorio', true, false)
+        } else {
+            //creacion de mensaje que se enviara a AX
+            let mensajeAX: string = ''
+
+            var weekOfYear = function (today: Date) {
+                let d: Date = new Date(+today)
+                d.setHours(0, 0, 0)
+                d.setDate(d.getDate() + 4 - (d.getDay() || 7))
+                return Math.ceil((((d - new Date(d.getFullYear(), 0, 1)) / 8.64e7) + 1) / 7);
+            }
+
+            let semana = weekOfYear(new Date())
+            if (categoriaNombre == 'Alimentacion') {
+                mensajeAX = TipoAlimento.label + ' sem ' + semana + ' ' + GiraState.Nombre
+            } else {
+                mensajeAX = categoriaNombre + ' sem ' + semana + ' ' + GiraState.Nombre
+            }
+            let hoy = moment().format()
+            let gasto: EnviarGastointerface = {
+                IdCategoriaTipoGastoViaje: idCategoria,
+                UsuarioAsesor: GiraState.UsuarioID,
+                Proveedor: proveedor,
+                NoFactura: factura,
+                Descripcion: Descripcion,
+                ValorFactura: parseFloat(total),
+                FechaFactura: showDate,
+                FechaCreacion: hoy,
+                Imagen: imagen,
+                DescripcionGasto: mensajeAX,
+                Serie: serie,
+                importeExento: parseFloat(Exento == '' ? '0' : Exento),
+                importeGravado: parseFloat(Gravado == '' ? '0' : Gravado),
+                CombustibleID: GiraState.Empresa == 'IMGT' ? combustibleID : null
+            }
+            console.log(gasto)
+
+            try {
+                if (factura != '') {
+                    await ReqRequestApiAventas.get<boolean>('Gira/GastoViajeDetalle/verificar/' + factura + "/" + proveedor + "/" + (serie != '' ? serie : '-'))
+                        .then(async (resp) => {
+                            console.log(resp.data)
+                            if (!resp.data) {
+                                enviarGasto(gasto)
+                            } else {
+                                alertas('Factura: ' + factura + ' ya existe para proveedor selecionado', true, false)
+                            }
+                        })
+
+                } else {
+                    enviarGasto(gasto)
+                }
+            } catch {
+                console.log('errores')
             }
 
         }
+        setEnviando(false)
+    }
+
+    const enviarGasto = async (gasto: EnviarGastointerface) => {
+        await ReqRequestApiAventas.post<number>('Gira/GastoViajeDetalle', gasto)
+            .then(x => {
+                console.log(x.data + ' Resultado')
+                if (x.data === 1) {
+                    alertas('gasto Enviado', true, true)
+                    setFactura('')
+                    setDescripcion('')
+                    setTotal('')
+                    setDate('')
+                    setGravado('')
+                    setExento('')
+                    setImagen('')
+                    setSerie('')
+                }
+            })
+    }
+
+    const alertas = (mensaje: string, show: boolean, tipo: boolean) => {
+        setMensajeAlerta(mensaje)
+        setShowMensajeAlerta(show)
+        setTipoMensaje(tipo)
     }
 
     useEffect(() => {
@@ -226,10 +357,18 @@ const GastoViajeScreen = () => {
     useEffect(() => {
         onScreeenLoad()
         getImpuesto()
+        let event: DateTimePickerEvent = {
+            type: 'set',
+            nativeEvent: {
+                utcOffset: 0,
+                timestamp: 1696189680000
+            }
+        }
+        onChanceDate(event, new Date())
     }, [])
 
     return (
-        <View>
+        <View style={{ flex: 1 }}>
             <HeaderLogout GoBack={false} navigation={navigation} />
             <ScrollView style={{ height: '92%' }} showsVerticalScrollIndicator={false}>
                 <SafeAreaView style={styles.container}>
@@ -251,7 +390,7 @@ const GastoViajeScreen = () => {
                                 boxStyle={{ flex: 1, alignItems: 'center', marginHorizontal: 0, paddingHorizontal: 10 }}
                                 textStyle={{ color: '#000', fontSize: 16 }}
                                 initial={1}
-                                selectedBtn={(value: string) => setTipoAlimento(value)}
+                                selectedBtn={(value: { label: string }) => setTipoAlimento(value)}
                                 box={false}
                                 textColor={'#000'}
                                 icon={<FontAwesome5Icon name="check" size={15} color={'#005555'} />}
@@ -270,7 +409,6 @@ const GastoViajeScreen = () => {
                                         :
                                         <ActivityIndicator size={'small'} color={'#000'} />
                                 }
-
                             </View>
                         </View>
                         <DropDownList
@@ -398,14 +536,29 @@ const GastoViajeScreen = () => {
                             openDate &&
                             <RNDateTimePicker
                                 testID="dateTimePicker"
-                                display="default"
+                                display="calendar"
                                 mode="date"
-                                value={showDate }
+                                value={showDate}
                                 onChange={onChanceDate}
                                 style={{ width: '100%' }}
                             />
                         }
+                        <ModalCameraUpload
+                            modalVisible={modalVisible}
+                            onRequestCloseImage={() => setModalVisible(!modalVisible)}
+                            OnPressUploadImage={() => setModalVisible(!modalVisible)}
+                            imagen={imagen}
+                            modalCameraUpload={modalCameraUpload}
+                            onRequestCloseSelectUploadImage={() => setmodalCameraUpload(false)}
+                            onPressOut={() => setmodalCameraUpload(false)}
+                            onPressCameraUpload={pickImage}
+                            OnPressUpLoadImage={upLoadImage}
+                            onPressModalCameraUpload={() => setmodalCameraUpload(true)}
+                            modalImage={() => setModalVisible(false)}
+                        />
+                        <Buttons title={enviando ? 'Enviando...' : 'Enviar'} disabled={enviando} onPressFunction={enviar} />
                     </View>
+
                 </SafeAreaView>
             </ScrollView>
             <MyAlert visible={showMensajeAlerta} tipoMensaje={tipoMensaje} mensajeAlerta={mensajeAlerta} onPress={() => setShowMensajeAlerta(false)} />

@@ -67,5 +67,9 @@
 		<string>SimpleLineIcons.ttf</string>
 		<string>Zocial.ttf</string>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Brindar permiso para acceder a la camara</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Brindar permiso para acceder a la camara</string>
 </dict>
 </plist>
