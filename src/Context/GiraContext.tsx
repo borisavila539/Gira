@@ -8,7 +8,8 @@ export interface GiraState {
     DocumentoFiscal: string,
     MonedaAbreviacion: string,
     Moneda: string,
-    logeado:boolean
+    logeado:boolean,
+    CantNoSync: number
 }
 
 export const GiraInitialState: GiraState = {
@@ -18,7 +19,8 @@ export const GiraInitialState: GiraState = {
     DocumentoFiscal:'',
     MonedaAbreviacion: '',
     Moneda:'',
-    logeado: false
+    logeado: false,
+    CantNoSync:0
 }
 
 export interface GiraContextProps {
@@ -30,6 +32,7 @@ export interface GiraContextProps {
     changeMonedaAbriaviacion: (MonedaAbreviacion:string) => void,
     changeMoneda: (Moneda: string) => void,
     changeLogeado: (logeado: boolean) => void
+    changeCatNoSync:(nosync: number)=> void
 }
 
 export const GiraContext = createContext({} as GiraContextProps)
@@ -58,6 +61,10 @@ export const GiraProvider = ({ children }: any) => {
     const changeLogeado = (logeado: boolean)=>{
         dispatch({type: 'changeLogeado', payload: logeado})
     }
+    const changeCatNoSync=(nosync: number)=>{
+        dispatch({type: 'changeCantnoSync', payload: nosync})
+        
+    }
 
 
     return (
@@ -69,7 +76,8 @@ export const GiraProvider = ({ children }: any) => {
             changeDocumentoFiscal,
             changeMonedaAbriaviacion,
             changeMoneda,
-            changeLogeado
+            changeLogeado,
+            changeCatNoSync
         }}>
             {children}
         </GiraContext.Provider>

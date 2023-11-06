@@ -63,7 +63,6 @@ const LoginScreen: FC<props> = ({ navigation }) => {
 
                         }
                         changeLogeado(true)
-                        //navigation.navigate("TabNavigation")
                     } else {
                         setMensajeAlerta(x.data.Message)
                         setShowMensajeAlerta(true)

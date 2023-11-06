@@ -27,7 +27,7 @@ import moment from "moment";
 
 const GastoViajeScreen = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParams>>()
-    const { GiraState } = useContext(GiraContext);
+    const { GiraState,changeCatNoSync} = useContext(GiraContext);
     const [TipoGasto, setTipoGasto] = useState<TipoGasto[]>([]);
     const [TipogastoArray, setTipoGastoArray] = useState<string[]>([])
     const [categoriaGasto, setCategoriaGasto] = useState<CategoriaGasto[]>([])
@@ -350,12 +350,20 @@ const GastoViajeScreen = () => {
         setTipoMensaje(tipo)
     }
 
+    const cantidadNoSync = async() =>{
+        await ReqRequestApiAventas.get<number>('Gira/GastoViajeDetalle/'+GiraState.UsuarioID+'/4')
+        .then(x=>{
+            changeCatNoSync(x.data)
+        })
+    }
+
     useEffect(() => {
         calcTotal()
     }, [Exento, Gravado])
 
     useEffect(() => {
         onScreeenLoad()
+        cantidadNoSync()
         getImpuesto()
         let event: DateTimePickerEvent = {
             type: 'set',

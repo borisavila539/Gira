@@ -8,7 +8,7 @@ import { HistorialDetalleInterface } from "../Interfaces/HistorialDetalle"
 import { styles } from "../Styles/StyleHistorialDetalle"
 import Buttons from "../Components/Buttons"
 import { GiraContext } from "../Context/GiraContext"
-import Base64Downloader, { triggerBase64Download } from "../../node_modules/react-base64-downloader";
+//import Base64Downloader, { triggerBase64Download } from "../../node_modules/react-base64-downloader";
 
 
 
@@ -52,7 +52,6 @@ const HistorialDetalleScreen: FC<props> = ({ navigation, route }) => {
                         <SafeAreaView style={styles.body}>
                             <Modal animationType="fade" transparent={true} visible={ModalVisible} onRequestClose={() => setModalVisible(false)}>
                                 <View style={styles.modal}>
-                                    <Base64Downloader base64={'data:image/jpeg;base64,' + gasto!.imagen}>Down</Base64Downloader>
                                     <Pressable style={styles.hideimage} onPress={() => setModalVisible(false)}>
                                         <Image source={{ uri: 'data:image/jpeg;base64,' + gasto?.imagen }} style={styles.imageModal} />
                                         <View style={{ width: '80%', maxWidth: 300 }}>

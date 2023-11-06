@@ -8,6 +8,8 @@ type GiraAction =
     | { type: 'changeMonedaAbriaviacion', payload: string }
     | { type: 'changeMoneda', payload: string }
     | {type: 'changeLogeado', payload: boolean}
+    | {type: 'changeCantnoSync', payload: number}
+
 
 
 export const GiraReducer = (state: GiraState, action: GiraAction): GiraState => {
@@ -46,6 +48,11 @@ export const GiraReducer = (state: GiraState, action: GiraAction): GiraState => 
             return{
                 ...state,
                 logeado: action.payload
+            }
+        case 'changeCantnoSync':
+            return{
+                ...state,
+                CantNoSync: action.payload
             }
         default:
             return state;

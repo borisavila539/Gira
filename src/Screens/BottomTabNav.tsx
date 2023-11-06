@@ -6,10 +6,13 @@ import FontAwesome5Icon from "react-native-vector-icons/FontAwesome5";
 import ProveedorScreen from "./ProveedorScreen";
 import NoSyncScreen from "./NoSyncScreen";
 import { StatusBar } from "react-native";
+import { useContext, useState } from "react";
+import { GiraContext } from "../Context/GiraContext";
 
 const Tab = createBottomTabNavigator();
 
 const BottomTabNavigation = () => {
+    const {GiraState} = useContext(GiraContext)
     return (
         <>
         <StatusBar backgroundColor={'#069A8E'} translucent/>
@@ -43,7 +46,7 @@ const BottomTabNavigation = () => {
                 <Tab.Screen name="Gasto Viaje" component={GastoViajeScreen} />
                 <Tab.Screen name="Historial" component={HistorialScreen} />
                 <Tab.Screen name="Solicitar Proveedor" component={ProveedorScreen} />
-                <Tab.Screen name="No Sincronizado" component={NoSyncScreen} />
+                <Tab.Screen name="No Sincronizado" component={NoSyncScreen} options={({})=> ({tabBarBadge:GiraState.CantNoSync > 0 ? GiraState.CantNoSync: null})}/>
             </Tab.Navigator>
         </>
     )
