@@ -5,11 +5,11 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParams } from "../Navigation/Navigation";
 import { ObjectHeigth } from "../Constants/Texto";
 import DropDownList from "../Components/DropDownList";
-import { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { ReqRequestApiAventas, ReqRequestApiProxy } from "../Api/API";
 import { GiraContext } from "../Context/GiraContext";
 import { CategoriaGasto, TipoGasto } from "../Interfaces/GastoViajeInterfaces";
-import RadioButtonRN from 'radio-buttons-react-native'
+
 import FontAwesome5Icon from "react-native-vector-icons/FontAwesome5";
 import { styles } from "../Styles/StylesGastoViaje";
 import { IconSelect } from "../Constants/BottomTab";
@@ -24,10 +24,12 @@ import { CameraOptions, ImagePickerResponse, launchCamera, launchImageLibrary } 
 import Buttons from "../Components/Buttons";
 import { EnviarGastointerface } from "../Interfaces/EnviarGasto";
 import moment from "moment";
+import { LoginStorageInterface } from "../Interfaces/LoginStorage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const GastoViajeScreen = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParams>>()
-    const { GiraState,changeCatNoSync} = useContext(GiraContext);
+    const { GiraState, changeCatNoSync } = useContext(GiraContext);
     const [TipoGasto, setTipoGasto] = useState<TipoGasto[]>([]);
     const [TipogastoArray, setTipoGastoArray] = useState<string[]>([])
     const [categoriaGasto, setCategoriaGasto] = useState<CategoriaGasto[]>([])
@@ -39,8 +41,8 @@ const GastoViajeScreen = () => {
     const [proveedores, setProveedores] = useState<ProveedoresInterface[]>([])
     const [proveedoresArray, setProveedoresArray] = useState<string[]>([])
     const [selectAlimentacion, setSelectAlimentacion] = useState<boolean>(false)
-    const dataAlimentos = [{ label: 'Desayuno' }, { label: 'Almuerzo' }, { label: 'Cena' }]
-    const [TipoAlimento, setTipoAlimento] = useState<{ label: string }>({ label: '' })
+    const dataAlimentos: string[] = ['Desayuno', 'Almuerzo', 'Cena']
+    const [TipoAlimento, setTipoAlimento] = useState<string>('')
     const [documentoFiscal, setDocumentoFiscal] = useState<string>('')
     const [BuscandoProveedor, setBuscandoproveedor] = useState<boolean>(false)
     const [showMensajeAlerta, setShowMensajeAlerta] = useState<boolean>(false);
@@ -127,6 +129,7 @@ const GastoViajeScreen = () => {
         setIdCategoria(id);
         setProveedor(proveedorTMP.length > 0 ? proveedorTMP : '')
         setSelectAlimentacion(selectedItem === 'Alimentacion' ? true : false)
+        setTipoAlimento('')
         setCategoriaNombre(nombreCategoria)
         setDocumentoFiscal('')
         setFactura('')
@@ -249,6 +252,8 @@ const GastoViajeScreen = () => {
 
         if (idCategoria === 0) {
             alertas('Debe Seleccionar una categoria', true, false)
+        }else if(categoriaNombre === 'Alimentacion' && TipoAlimento === ''){
+            alertas('Debe Seleccionar un Tipo de alimentacio', true, false)
         } else if (proveedor === '') {
             alertas('Debe Seleccionar un Proveedor', true, false)
         } else if (combustibleID === 0 && categoriaNombre === 'Combustible' && GiraState.Empresa === 'IMGT') {
@@ -280,7 +285,7 @@ const GastoViajeScreen = () => {
 
             let semana = weekOfYear(new Date())
             if (categoriaNombre == 'Alimentacion') {
-                mensajeAX = TipoAlimento.label + ' sem ' + semana + ' ' + GiraState.Nombre
+                mensajeAX = TipoAlimento + ' sem ' + semana + ' ' + GiraState.Nombre
             } else {
                 mensajeAX = categoriaNombre + ' sem ' + semana + ' ' + GiraState.Nombre
             }
@@ -350,11 +355,11 @@ const GastoViajeScreen = () => {
         setTipoMensaje(tipo)
     }
 
-    const cantidadNoSync = async() =>{
-        await ReqRequestApiAventas.get<number>('Gira/GastoViajeDetalle/'+GiraState.UsuarioID+'/4')
-        .then(x=>{
-            changeCatNoSync(x.data)
-        })
+    const cantidadNoSync = async () => {
+        await ReqRequestApiAventas.get<number>('Gira/GastoViajeDetalle/' + GiraState.UsuarioID + '/4')
+            .then(x => {
+                changeCatNoSync(x.data)
+            })
     }
 
     useEffect(() => {
@@ -392,18 +397,13 @@ const GastoViajeScreen = () => {
                             disabled={disabledCategoria} />
                         {
                             selectAlimentacion &&
-                            <RadioButtonRN
+                            <DropDownList
                                 data={dataAlimentos}
-                                style={{ flex: 1, width: '95%' }}
-                                boxStyle={{ flex: 1, alignItems: 'center', marginHorizontal: 0, paddingHorizontal: 10 }}
-                                textStyle={{ color: '#000', fontSize: 16 }}
-                                initial={1}
-                                selectedBtn={(value: { label: string }) => setTipoAlimento(value)}
-                                box={false}
-                                textColor={'#000'}
-                                icon={<FontAwesome5Icon name="check" size={15} color={'#005555'} />}
-                                circleSize={10}
+                                defaultButtonText="Tipo Alimento"
+                                onSelect={(selectedItem: string, index: number) => setTipoAlimento(selectedItem)}
+                                disabled={disabledCategoria}
                             />
+
                         }
                         <View style={styles.textInputDateContainer}>
                             <Text style={styles.text}>{GiraState.DocumentoFiscal}</Text>

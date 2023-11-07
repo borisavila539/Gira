@@ -12,10 +12,13 @@ import FontAwesome5Icon from "react-native-vector-icons/FontAwesome5";
 import { IconSelect } from "../Constants/BottomTab";
 import { GiraContext } from "../Context/GiraContext";
 import { DocumentoFiscal, MonedaInterface } from "../Interfaces/DocumentoFiscal";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LoginStorageInterface } from "../Interfaces/LoginStorage";
 
 type props = StackScreenProps<RootStackParams, 'LoginScreen'>
 
 const LoginScreen: FC<props> = ({ navigation }) => {
+    
     const [user, setUser] = useState<string>('')
     const [password, setPassword] = useState<string>('')
     const [enviando, setEnviando] = useState<boolean>(false)
@@ -24,6 +27,7 @@ const LoginScreen: FC<props> = ({ navigation }) => {
     const [mensajeAlerta, setMensajeAlerta] = useState<string>('');
     const [viewPassword, setViewPassword] = useState<boolean>(true);
     const { 
+        GiraState,
         changeUsuarioID, 
         changeNombre, 
         changeEmpresa, 
@@ -62,7 +66,11 @@ const LoginScreen: FC<props> = ({ navigation }) => {
                         } catch (err) {
 
                         }
+                        //guardarCredenciales()
+                       
+
                         changeLogeado(true)
+                        
                     } else {
                         setMensajeAlerta(x.data.Message)
                         setShowMensajeAlerta(true)
@@ -77,6 +85,19 @@ const LoginScreen: FC<props> = ({ navigation }) => {
             setTipoMensaje(false)
         }
         setEnviando(false)
+    }
+
+    const guardarCredenciales = async() =>{
+        const storage : LoginStorageInterface = {
+            usuarioID: GiraState.UsuarioID,
+            Nombre: GiraState.Nombre,
+            Empresa: GiraState.Empresa,
+            DocumentoFiscal: GiraState.DocumentoFiscal,
+            Moneda: GiraState.Moneda,
+            MonedaAbreviacion: GiraState.MonedaAbreviacion,
+            Logeado : true
+        }
+        await AsyncStorage.setItem('usuarioID',GiraState.UsuarioID)
     }
     return (
         <View style={{ flex: 1 }}>

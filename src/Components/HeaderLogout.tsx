@@ -5,11 +5,14 @@ import FontAwesome5Icon from "react-native-vector-icons/FontAwesome5";
 import { IconHeader } from "../Constants/BottomTab";
 import { useContext } from "react";
 import { GiraContext } from "../Context/GiraContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 const HeaderLogout = ({GoBack,navigation}:HeaderInterface) =>{
     const {GiraState,changeLogeado} = useContext(GiraContext)
     const handlePressLogout = async () => {
+        await AsyncStorage.removeItem('usuarioID')
+
         changeLogeado(false)
     }
     return (

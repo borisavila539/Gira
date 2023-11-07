@@ -6,7 +6,7 @@ import FontAwesome5Icon from "react-native-vector-icons/FontAwesome5";
 import ProveedorScreen from "./ProveedorScreen";
 import NoSyncScreen from "./NoSyncScreen";
 import { StatusBar } from "react-native";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { GiraContext } from "../Context/GiraContext";
 
 const Tab = createBottomTabNavigator();
