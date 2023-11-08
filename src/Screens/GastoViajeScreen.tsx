@@ -1,4 +1,4 @@
-import { ActivityIndicator, PermissionStatus, Platform, SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import HeaderLogout from "../Components/HeaderLogout";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -9,7 +9,6 @@ import React, { useContext, useEffect, useState } from "react";
 import { ReqRequestApiAventas, ReqRequestApiProxy } from "../Api/API";
 import { GiraContext } from "../Context/GiraContext";
 import { CategoriaGasto, TipoGasto } from "../Interfaces/GastoViajeInterfaces";
-
 import FontAwesome5Icon from "react-native-vector-icons/FontAwesome5";
 import { styles } from "../Styles/StylesGastoViaje";
 import { IconSelect } from "../Constants/BottomTab";
@@ -24,8 +23,6 @@ import { CameraOptions, ImagePickerResponse, launchCamera, launchImageLibrary } 
 import Buttons from "../Components/Buttons";
 import { EnviarGastointerface } from "../Interfaces/EnviarGasto";
 import moment from "moment";
-import { LoginStorageInterface } from "../Interfaces/LoginStorage";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const GastoViajeScreen = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParams>>()
@@ -252,7 +249,7 @@ const GastoViajeScreen = () => {
 
         if (idCategoria === 0) {
             alertas('Debe Seleccionar una categoria', true, false)
-        }else if(categoriaNombre === 'Alimentacion' && TipoAlimento === ''){
+        } else if (categoriaNombre === 'Alimentacion' && TipoAlimento === '') {
             alertas('Debe Seleccionar un Tipo de alimentacio', true, false)
         } else if (proveedor === '') {
             alertas('Debe Seleccionar un Proveedor', true, false)
