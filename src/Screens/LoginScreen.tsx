@@ -1,11 +1,11 @@
 import { StackScreenProps } from "@react-navigation/stack";
 import { RootStackParams } from "../Navigation/Navigation";
 import { FC, useContext, useReducer, useState } from "react";
-import { Image, Pressable, SafeAreaView, StyleSheet, TextInput, View } from "react-native";
+import { Image, Pressable, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { placeholderText } from "../Constants/Colors";
 import Buttons from "../Components/Buttons";
 import { LoginInterface } from "../Interfaces/LoginInterface";
-import { ReqRequestApiAventas } from "../Api/API";
+import { ReqRequestApiAmazon, ReqRequestApiAventas } from "../Api/API";
 import { ResponseLogin } from "../Interfaces/ResponseLogin";
 import MyAlert from "../Components/MyAlert";
 import FontAwesome5Icon from "react-native-vector-icons/FontAwesome5";
@@ -18,7 +18,7 @@ import { LoginStorageInterface } from "../Interfaces/LoginStorage";
 type props = StackScreenProps<RootStackParams, 'LoginScreen'>
 
 const LoginScreen: FC<props> = ({ navigation }) => {
-    
+
     const [user, setUser] = useState<string>('')
     const [password, setPassword] = useState<string>('')
     const [enviando, setEnviando] = useState<boolean>(false)
@@ -26,12 +26,13 @@ const LoginScreen: FC<props> = ({ navigation }) => {
     const [tipoMensaje, setTipoMensaje] = useState<boolean>(false);
     const [mensajeAlerta, setMensajeAlerta] = useState<string>('');
     const [viewPassword, setViewPassword] = useState<boolean>(true);
-    const { 
+    const [crearCuenta, setCrearCuenta] = useState<boolean>(true);
+    const {
         GiraState,
-        changeUsuarioID, 
-        changeNombre, 
-        changeEmpresa, 
-        changeDocumentoFiscal ,
+        changeUsuarioID,
+        changeNombre,
+        changeEmpresa,
+        changeDocumentoFiscal,
         changeMoneda,
         changeMonedaAbriaviacion,
         changeLogeado
@@ -59,18 +60,18 @@ const LoginScreen: FC<props> = ({ navigation }) => {
 
                         try {
                             ReqRequestApiAventas.get<MonedaInterface>('Gira/MaestroMoneda/' + x.data.Data.Empresa.toUpperCase())
-                            .then(x=>{
-                                changeMoneda(x.data.Moneda)
-                                changeMonedaAbriaviacion(x.data.Abreviacion)
-                            })
+                                .then(x => {
+                                    changeMoneda(x.data.Moneda)
+                                    changeMonedaAbriaviacion(x.data.Abreviacion)
+                                })
                         } catch (err) {
 
                         }
                         //guardarCredenciales()
-                       
+
 
                         changeLogeado(true)
-                        
+
                     } else {
                         setMensajeAlerta(x.data.Message)
                         setShowMensajeAlerta(true)
@@ -80,24 +81,38 @@ const LoginScreen: FC<props> = ({ navigation }) => {
                 )
 
         } catch (err) {
-            setMensajeAlerta('Usuario o contraseña incorrecta...')
-            setShowMensajeAlerta(true)
-            setTipoMensaje(false)
+            await ReqRequestApiAmazon.post<{ usuario: string, token: string }>('movil/login', { usuario: user, password }).then(resp => {
+                changeNombre(resp.data.usuario.replace('Temp',''))
+                changeEmpresa('IMHN')
+                changeDocumentoFiscal('RTN')
+                changeMoneda('Lempiras')
+                changeMonedaAbriaviacion('L')
+                changeLogeado(true)
+            }).catch(err=>{
+                setMensajeAlerta('usuario o contraseña incorrecta...')
+                setShowMensajeAlerta(true)
+                setTipoMensaje(false)
+            });
+            
         }
         setEnviando(false)
     }
 
-    const guardarCredenciales = async() =>{
-        const storage : LoginStorageInterface = {
+    const guardarCredenciales = async () => {
+        const storage: LoginStorageInterface = {
             usuarioID: GiraState.UsuarioID,
             Nombre: GiraState.Nombre,
             Empresa: GiraState.Empresa,
             DocumentoFiscal: GiraState.DocumentoFiscal,
             Moneda: GiraState.Moneda,
             MonedaAbreviacion: GiraState.MonedaAbreviacion,
-            Logeado : true
+            Logeado: true
         }
-        await AsyncStorage.setItem('usuarioID',GiraState.UsuarioID)
+        await AsyncStorage.setItem('usuarioID', GiraState.UsuarioID)
+    }
+
+    const onPressCrearCuenta = () => {
+        navigation.navigate("CrearCuentaScreen")
     }
     return (
         <View style={{ flex: 1 }}>
@@ -140,12 +155,24 @@ const LoginScreen: FC<props> = ({ navigation }) => {
                             />
                         </Pressable>
                     </View>
-                    <View style={{ width: '100%', marginTop: 10, alignItems: 'center' }}>
+                    <View style={{ width: '100%', marginTop: 10, alignItems: 'center', flexDirection: "column" }}>
                         <Buttons
                             title={enviando ? "Iniciando..." : "Iniciar Sesion"}
                             onPressFunction={onPressLogin}
                             disabled={enviando}
                         />
+                        {
+                            crearCuenta &&
+                            <>
+                                <Text></Text>
+                                <TouchableOpacity onPress={onPressCrearCuenta}>
+                                    <Text>Crear Cuenta</Text>
+                                </TouchableOpacity>
+                            </>
+
+
+                        }
+
                     </View>
                 </View>
             </View>
